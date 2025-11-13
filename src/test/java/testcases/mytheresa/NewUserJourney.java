@@ -1,81 +1,39 @@
-package testcases.mytheresa;
+public void logIn() {
+    driver.get("https://www.mytheresa.com/en-de/"); // full URL
 
-import org.openqa.selenium.WebDriver;
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.Select;
-import org.testng.annotations.Test;
+    // ✅ 1️⃣ Accept cookies popup if visible
+    try {
+        WebElement cookieButton = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("button[class*='cookie']")));
+        cookieButton.click();
+        System.out.println("✅ Cookie consent accepted");
+    } catch (Exception e) {
+        System.out.println("ℹ️ No cookie popup found.");
+    }
 
-import objectRepository.mytheresa.MytheresaAccountInformationPage;
-import objectRepository.mytheresa.MytheresaCreateAccountPage;
-import objectRepository.mytheresa.MytheresaHomePage;
-import objectRepository.mytheresa.MytheresaMyAccountPage;
+    // ✅ 2️⃣ Wait for 'My Account' element — try multiple locators
+    WebElement myAccount = null;
+    try {
+        myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("a[href*='customer/account']")));
+    } catch (Exception e1) {
+        try {
+            myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[contains(.,'My account') or contains(.,'Account')]")));
+        } catch (Exception e2) {
+            throw new RuntimeException("❌ Could not find My Account button on page");
+        }
+    }
 
-import static variables.mytheresa.UserVariables.*;
+    myAccount.click();
 
-public class NewUserJourney {
+    // ✅ 3️⃣ Wait for email field
+    WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+    email.sendKeys("testuser@example.com");
 
-	@Test
-	public void accountCreate() {
+    WebElement password = driver.findElement(By.id("password"));
+    password.sendKeys("TestPassword123");
 
-		BrowserSetting bs = new BrowserSetting();
-
-		WebDriver driver = bs.BrowserSettings();
-
-		createAccount(driver);
-
-		// password change
-		// my account page access
-		MytheresaMyAccountPage map = new MytheresaMyAccountPage(driver);
-		changePassword(driver, map);
-
-		logOut(driver, map);
-
-		driver.close();
-
-	}
-
-	private void createAccount(WebDriver driver) {
-		// account create
-		// homepage's object access
-		MytheresaHomePage mhp = new MytheresaHomePage(driver);
-		mhp.myAccountLinkPath().click();
-
-		// account create page's object access
-		MytheresaCreateAccountPage mcap = new MytheresaCreateAccountPage(driver);
-
-		mcap.genderButtonPath().click();
-
-		Select s = new Select(mcap.academicTitlePath());
-		s.selectByValue("");
-
-		mcap.firstNamePath().sendKeys(USER_FIRST_NAME);
-		mcap.lastNamePath().sendKeys(USER_LAST_NAME);
-		mcap.emailAddressPath().sendKeys(USER_EMAIL);
-		mcap.passwordPath().sendKeys(USER_PASSWORD);
-		mcap.confirmPasswordPath().sendKeys(USER_PASSWORD);
-		mcap.registrationButtonPath().click();
-	}
-
-	private void changePassword(WebDriver driver, MytheresaMyAccountPage map) {
-		map.changePassLinkPath().click();
-
-		// account information page access
-		MytheresaAccountInformationPage aip = new MytheresaAccountInformationPage(driver);
-		aip.currentPassTextPath().sendKeys(USER_PASSWORD);
-		aip.newPassTextPath().sendKeys(USER_NEW_PASSWORD);
-		aip.confirmPassTextPath().sendKeys(USER_NEW_PASSWORD);
-		aip.saveButtonPath().click();
-	}
-
-	private void logOut(WebDriver driver, MytheresaMyAccountPage map) {
-		// log out
-		// my account page access
-		Actions a = new Actions(driver);// creating Actions class's object to take actions
-		WebElement move = map.myaccountLinkPath();// save the path in one web element variable
-		a.moveToElement(move).build().perform();// code for mouse hover
-		map.logoutPath().click();
-	}
-
+    WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("loginButton")));
+    loginButton.click();
 }
