@@ -1,65 +1,39 @@
-package testcases.mytheresa;
+public void logIn() {
+    driver.get("https://www.mytheresa.com/en-de/"); // full URL
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import java.time.Duration;
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 
-public class WishListCheckAdd {
-
-    WebDriver driver;
-
-    @BeforeMethod
-    public void setUp() {
-        // Initialize Chrome in headless mode
-        WebdriverSettings.initialize();
-        driver = WebdriverSettings.driver;
+    // ✅ 1️⃣ Accept cookies popup if visible
+    try {
+        WebElement cookieButton = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("button[class*='cookie']")));
+        cookieButton.click();
+        System.out.println("✅ Cookie consent accepted");
+    } catch (Exception e) {
+        System.out.println("ℹ️ No cookie popup found.");
     }
 
-    @Test
-    public void WishList() {
-        logIn();
-
-        // ✅ Example action after login — adjust as per your site
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-        WebElement wishlistIcon = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".wishlist-icon")));
-        wishlistIcon.click();
-
-        // Example assertion (customize based on your application)
-        String pageTitle = driver.getTitle();
-        Assert.assertTrue(pageTitle.contains("Wishlist"), "Wishlist page not loaded!");
+    // ✅ 2️⃣ Wait for 'My Account' element — try multiple locators
+    WebElement myAccount = null;
+    try {
+        myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("a[href*='customer/account']")));
+    } catch (Exception e1) {
+        try {
+            myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[contains(.,'My account') or contains(.,'Account')]")));
+        } catch (Exception e2) {
+            throw new RuntimeException("❌ Could not find My Account button on page");
+        }
     }
 
-    public void logIn() {
-        driver.get("https://www.mytheresa.com/"); // change to BASE_URL if you use UrlVariables
+    myAccount.click();
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+    // ✅ 3️⃣ Wait for email field
+    WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+    email.sendKeys("testuser@example.com");
 
-        // ✅ Wait for “My Account” link instead of directly finding it
-        WebElement myAccount = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.id("myaccount"))
-        );
-        myAccount.click();
+    WebElement password = driver.findElement(By.id("password"));
+    password.sendKeys("TestPassword123");
 
-        // ✅ Wait for login form elements
-        WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
-        email.sendKeys("testuser@example.com");
-
-        WebElement password = driver.findElement(By.id("password"));
-        password.sendKeys("TestPassword123");
-
-        WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("loginButton")));
-        loginButton.click();
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        WebdriverSettings.tearDown();
-    }
+    WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("loginButton")));
+    loginButton.click();
 }
