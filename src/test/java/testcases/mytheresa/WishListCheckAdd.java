@@ -1,39 +1,60 @@
-public void logIn() {
-    driver.get("https://www.mytheresa.com/en-de/"); // full URL
+package testcases.mytheresa;
 
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.Test;
 
-    // ✅ 1️⃣ Accept cookies popup if visible
-    try {
-        WebElement cookieButton = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector("button[class*='cookie']")));
-        cookieButton.click();
-        System.out.println("✅ Cookie consent accepted");
-    } catch (Exception e) {
-        System.out.println("ℹ️ No cookie popup found.");
-    }
+import java.time.Duration;
 
-    // ✅ 2️⃣ Wait for 'My Account' element — try multiple locators
-    WebElement myAccount = null;
-    try {
-        myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("a[href*='customer/account']")));
-    } catch (Exception e1) {
+public class WishListCheckAdd {
+
+    WebDriver driver;
+
+    @Test
+    public void logIn() {
+        driver.get("https://www.mytheresa.com/en-de/");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        // Accept cookies popup if visible
         try {
-            myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[contains(.,'My account') or contains(.,'Account')]")));
-        } catch (Exception e2) {
-            throw new RuntimeException("❌ Could not find My Account button on page");
+            WebElement cookieButton = wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(
+                            By.cssSelector("button[class*='cookie']"))
+            );
+            cookieButton.click();
+            System.out.println("Cookie consent accepted");
+        } catch (Exception e) {
+            System.out.println("No cookie popup found.");
         }
+
+        // Wait for 'My Account'
+        WebElement myAccount = null;
+        try {
+            myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.cssSelector("a[href*='customer/account']")));
+        } catch (Exception e1) {
+            try {
+                myAccount = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//a[contains(.,'My account') or contains(.,'Account')]")));
+            } catch (Exception e2) {
+                throw new RuntimeException("Could not find My Account button on page");
+            }
+        }
+
+        myAccount.click();
+
+        // Enter email & password
+        WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+        email.sendKeys("testuser@example.com");
+
+        WebElement password = driver.findElement(By.id("password"));
+        password.sendKeys("TestPassword123");
+
+        WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("loginButton")));
+        loginButton.click();
     }
-
-    myAccount.click();
-
-    // ✅ 3️⃣ Wait for email field
-    WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
-    email.sendKeys("testuser@example.com");
-
-    WebElement password = driver.findElement(By.id("password"));
-    password.sendKeys("TestPassword123");
-
-    WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("loginButton")));
-    loginButton.click();
 }
